@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Press+Start+2P&display=swap');
+
+@layer base {
+  body {
+    background-color: #ffffff;
+    color: #1a1a1a;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
+  }
+}
+
+@layer components {
+  /* Dotted background pattern utility */
+  .dotted-bg {
+    background-image: radial-gradient(circle, rgba(255,87,34,0.15) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  /* Pixelated OS text effect */
+  .text-os {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+  }
+
+  /* Sky background with clouds */
+  .sky-bg {
+    background: linear-gradient(to bottom, #87ceeb 0%, #b0e0e6 100%);
+  }
+
+  @keyframes train-arrive {
+    0% {
+      transform: translateX(-100px) scale(0.5);
+      opacity: 0;
+    }
+    50% {
+      transform: translateX(-20px) scale(0.8);
+      opacity: 0.7;
+    }
+    100% {
+      transform: translateX(0) scale(1);
+      opacity: 1;
+    }
+  }
+}

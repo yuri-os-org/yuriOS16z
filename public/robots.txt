@@ -1,0 +1,23 @@
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# Disallow admin or internal pages (if any in the future)
+# Disallow: /api/
+# Disallow: /admin/
+
+# Sitemap location
+Sitemap: https://yuriosai.com/sitemap.xml
+
+# Crawl delay (optional, helps prevent server overload)
+# Crawl-delay: 10
+
+# Specific bot instructions
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /

@@ -1,0 +1,7 @@
+<svg width="120" height="40" viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M8 26 L14 14 L20 26 Z" fill="#28A0F0"/>
+  <path d="M14 14 L20 14 L17 20 Z" fill="#96BEDC"/>
+  <text x="28" y="26" font-family="Arial, sans-serif" font-size="18" font-weight="600" fill="#ffffff">
+    Arbitrum
+  </text>
+</svg>

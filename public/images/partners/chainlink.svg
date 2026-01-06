@@ -1,0 +1,8 @@
+<svg width="130" height="40" viewBox="0 0 130 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M12 10 L18 14 L12 18 L6 14 Z M12 22 L18 26 L12 30 L6 26 Z" fill="#2A5ADA"/>
+  <line x1="18" y1="14" x2="18" y2="26" stroke="#2A5ADA" stroke-width="2"/>
+  <line x1="6" y1="14" x2="6" y2="26" stroke="#2A5ADA" stroke-width="2"/>
+  <text x="28" y="26" font-family="Arial, sans-serif" font-size="18" font-weight="600" fill="#ffffff">
+    Chainlink
+  </text>
+</svg>
