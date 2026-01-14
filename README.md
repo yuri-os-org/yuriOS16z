@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Agent Yuri Logo](public/images/characters/Dark%20Maga%20Cat%20(6).png)
+![Agent Yuri Logo](./public/images/characters/Dark%20Maga%20Cat%20(6).png)
 
 **Choose, Predict, and Earn - Powered by Claude**
 
