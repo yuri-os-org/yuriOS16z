@@ -1,0 +1,241 @@
+'use client';
+
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { getMarkets, searchMarkets } from '@/services/polymarket';
+import { MarketWithForecast } from '@/types/market';
+import { Header } from '@/components/ui/Header';
+import { MarketCard } from '@/components/markets/MarketCard';
+import { HeroSectionDark } from '@/components/home/HeroSectionDark';
+
+export default function Home() {
+  const [markets, setMarkets] = useState<MarketWithForecast[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searching, setSearching] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [currentLimit, setCurrentLimit] = useState(20);
+
+  const searchTimeout = useRef<NodeJS.Timeout>();
+
+  // Initial load
+  useEffect(() => {
+    getMarkets(20)
+      .then(setMarkets)
+      .finally(() => setLoading(false));
+  }, []);
+
+  // Live search with debounce
+  useEffect(() => {
+    if (searchTimeout.current) {
+      clearTimeout(searchTimeout.current);
+    }
+
+    if (searchQuery.trim().length > 0) {
+      setSearching(true);
+      searchTimeout.current = setTimeout(() => {
+        searchMarkets(searchQuery)
+          .then(setMarkets)
+          .finally(() => setSearching(false));
+      }, 500);
+    } else {
+      setSearching(true);
+      getMarkets(currentLimit)
+        .then(setMarkets)
+        .finally(() => setSearching(false));
+    }
+
+    return () => {
+      if (searchTimeout.current) {
+        clearTimeout(searchTimeout.current);
+      }
+    };
+  }, [searchQuery, currentLimit]);
+
+  // Load more markets
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore || searchQuery.trim().length > 0) return;
+
+    setLoadingMore(true);
+    const newLimit = currentLimit + 20;
+
+    try {
+      const newMarkets = await getMarkets(newLimit);
+      if (newMarkets.length <= markets.length) {
+        setHasMore(false);
+      } else {
+        setMarkets(newMarkets);
+        setCurrentLimit(newLimit);
+      }
+    } catch (error) {
+      console.error('Error loading more markets:', error);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [currentLimit, loadingMore, hasMore, markets.length, searchQuery]);
+
+  const handleForecastUpdate = (marketId: string, forecast: string, isLoading: boolean) => {
+    setMarkets(prev => prev.map(m =>
+      m.id === marketId ? { ...m, aiForecast: forecast, loading: isLoading } : m
+    ));
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-dark-bg">
+        <Header />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="w-16 h-16 border-4 border-neon-blue border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-gray-400 font-medium">Loading markets...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ backgroundColor: "#0a0a0f", minHeight: "100vh" }}>
+      <Header />
+
+      {/* Hero Section */}
+      <HeroSectionDark />
+
+      {/* Markets Section */}
+      <section id="markets" className="relative py-20">
+        {/* Background decoration */}
+        <div className="absolute inset-0 bg-grid-pattern bg-[size:50px_50px] opacity-10"></div>
+
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-white mb-4">
+              Explore <span className="bg-gradient-to-r from-neon-blue to-neon-cyan bg-clip-text text-transparent">Live Markets</span>
+            </h2>
+            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+              Browse prediction markets and get instant AI analysis
+            </p>
+          </div>
+
+          {/* Search Bar */}
+          <div className="mb-8 max-w-2xl mx-auto">
+            <div className="relative">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search any market... (e.g., Bitcoin, Trump, AI)"
+                className="w-full px-6 py-4 bg-dark-card border border-dark-border rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-neon-blue focus:shadow-lg focus:shadow-neon-blue/20 transition-all"
+              />
+              <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+            </div>
+            {searching && (
+              <p className="text-sm text-gray-500 mt-2">Searching markets...</p>
+            )}
+          </div>
+
+          {/* Results Count */}
+          <div className="flex items-center justify-between text-sm text-gray-500 mb-6">
+            <span>
+              Showing <strong className="text-neon-blue">{markets.length}</strong> market{markets.length !== 1 ? 's' : ''}
+              {searchQuery && ` for "${searchQuery}"`}
+            </span>
+            {!searchQuery && hasMore && (
+              <span className="text-neon-blue">More available below</span>
+            )}
+          </div>
+
+          {/* Markets Grid */}
+          {markets.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="w-16 h-16 mx-auto mb-4 opacity-20">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="text-gray-500">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-white mb-2">No markets found</h3>
+              <p className="text-gray-500">Try different search terms</p>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {markets.map(market => (
+                  <MarketCard
+                    key={market.id}
+                    market={market}
+                    onForecastUpdate={handleForecastUpdate}
+                  />
+                ))}
+              </div>
+
+              {/* Manual Load More Button */}
+              {!searchQuery && (
+                <div className="flex items-center justify-center mt-12">
+                  {hasMore ? (
+                    <button
+                      onClick={loadMore}
+                      disabled={loadingMore}
+                      className="group px-8 py-4 bg-dark-card border-2 border-neon-blue/50 rounded-xl font-semibold text-lg text-neon-blue hover:bg-dark-hover hover:border-neon-blue hover:shadow-lg hover:shadow-neon-blue/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {loadingMore ? (
+                        <span className="flex items-center gap-2">
+                          <div className="w-5 h-5 border-2 border-neon-blue border-t-transparent rounded-full animate-spin"></div>
+                          Loading more markets...
+                        </span>
+                      ) : (
+                        'Load More Markets'
+                      )}
+                    </button>
+                  ) : (
+                    <p className="text-gray-500 text-sm">No more markets to load</p>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="mt-16 border-t border-dark-border bg-dark-surface">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+              <h3 className="text-lg font-bold bg-gradient-to-r from-neon-blue to-neon-cyan bg-clip-text text-transparent mb-4">
+                AI Market Analyzer
+              </h3>
+              <p className="text-gray-500 text-sm">
+                Compare prediction market odds with AI-generated forecasts powered by Claude AI.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-semibold text-white mb-4">Resources</h4>
+              <ul className="space-y-2 text-sm text-gray-500">
+                <li><a href="#" className="hover:text-neon-blue transition-colors">Documentation</a></li>
+                <li><a href="#" className="hover:text-neon-blue transition-colors">API Reference</a></li>
+                <li><a href="#" className="hover:text-neon-blue transition-colors">GitHub</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold text-white mb-4">Legal</h4>
+              <ul className="space-y-2 text-sm text-gray-500">
+                <li><a href="#" className="hover:text-neon-blue transition-colors">Privacy Policy</a></li>
+                <li><a href="#" className="hover:text-neon-blue transition-colors">Terms of Service</a></li>
+                <li><a href="#" className="hover:text-neon-blue transition-colors">Disclaimer</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="mt-8 pt-8 border-t border-dark-border text-center text-sm text-gray-500">
+            <p>© 2026 AI Market Analyzer. This is a demo tool for research purposes only.</p>
+            <p className="mt-2">AI forecasts should not be considered financial advice.</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
